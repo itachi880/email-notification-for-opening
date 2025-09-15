@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Email Tracking</title>
+</head>
+
+<body>
+    <h1>Test Email</h1>
+    <p>This is a test email to verify tracking functionality.</p>
+    <p>When you open this page, it should register as an email open in the dashboard.</p>
+
+    <!-- Replace this URL with your actual tracking URL from the dashboard -->
+    <img src="http://localhost:3000/api/track/test123" width="50" height="50" style="border: 1px solid red;" />
+
+    <p><strong>Instructions:</strong></p>
+    <ol>
+        <li>Start the Next.js development server: <code>npm run dev</code></li>
+        <li>Go to <a href="http://localhost:3000">http://localhost:3000</a></li>
+        <li>Generate a tracking URL for a test email</li>
+        <li>Replace the URL in this file with your generated tracking URL</li>
+        <li>Open this HTML file in a browser</li>
+        <li>Check the dashboard to see if the open was recorded</li>
+    </ol>
+</body>
+
+</html>

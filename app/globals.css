@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Email content styling - minimal and clean */
+.email-content {
+  font-family: inherit;
+  line-height: 1.4;
+  color: inherit;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.email-content * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.email-content *:not(img) {
+  height: auto !important;
+}
+
+.email-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.email-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Remove default table borders - let email define its own */
+.email-content td, .email-content th {
+  padding: 0;
+  border: none;
+}
+
+/* Minimal paragraph spacing */
+.email-content p {
+  margin: 0;
+  margin-bottom: 0.25rem;
+}
+
+.email-content h1, .email-content h2, .email-content h3, 
+.email-content h4, .email-content h5, .email-content h6 {
+  margin: 0;
+  margin-bottom: 0.25rem;
+  font-weight: bold;
+}
+
+.email-content ul, .email-content ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.email-content li {
+  margin: 0;
+}
+
+.email-content a {
+  color: #1a73e8;
+  text-decoration: none;
+}
+
+.email-content a:hover {
+  text-decoration: underline;
+}
+
+.email-content blockquote {
+  margin: 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid #e5e7eb;
+  color: #6b7280;
+}
+
+/* Minimal additional styling */
+.email-content {
+  max-width: 100%;
+  overflow-x: hidden;
+  font-size: 14px;
+}
+
+.email-content center {
+  text-align: center;
+}
+
+/* Handle Outlook-specific elements */
+.email-content v\\:* {
+  display: none !important;
+}
+
+.email-content o\\:* {
+  display: none !important;
+}
+
+/* Ensure long URLs don't break layout */
+.email-content .break-all {
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
