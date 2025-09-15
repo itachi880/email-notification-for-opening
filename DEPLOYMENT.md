@@ -97,7 +97,33 @@ docker run -p 3000:3000 \
 
 ## 🗄️ Database Setup
 
-### PostgreSQL (Recommended for Production)
+### Turso (Recommended - SQLite-compatible, serverless)
+
+#### Quick Setup with Your Database:
+```bash
+# Use the automated setup script
+npm run setup:turso
+```
+
+Your Turso database URL: `libsql://emailclient-itachi880.aws-eu-west-1.turso.io`
+
+#### Manual Setup:
+1. Get your Turso auth token:
+   ```bash
+   # If you have Turso CLI installed
+   turso auth token
+   
+   # Or get it from Turso dashboard
+   ```
+2. Set environment variables:
+   ```bash
+   TURSO_DATABASE_URL=libsql://emailclient-itachi880.aws-eu-west-1.turso.io
+   TURSO_AUTH_TOKEN=your-auth-token
+   DATABASE_URL=libsql://emailclient-itachi880.aws-eu-west-1.turso.io
+   ```
+3. Push schema: `npx prisma db push`
+
+### Alternative: PostgreSQL
 
 #### Option 1: Supabase
 1. Create account at [supabase.com](https://supabase.com)

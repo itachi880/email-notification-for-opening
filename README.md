@@ -25,8 +25,19 @@ A Next.js application that tracks whether emails have been opened using tracking
 npm install
 ```
 
-2. Generate Prisma client and setup database:
+2. Setup your database:
 
+**Option A: Turso (Recommended - your configured database)**
+```bash
+npm run setup:turso
+# This will:
+# - Configure your Turso database (libsql://emailclient-itachi880.aws-eu-west-1.turso.io)
+# - Set up environment variables
+# - Test the connection
+# - Push the schema
+```
+
+**Option B: Manual setup**
 ```bash
 npx prisma generate
 npx prisma db push
@@ -48,6 +59,7 @@ npm run build              # Build for production
 npm start                  # Start production server
 npm run lint               # Run ESLint
 npm run setup:production   # Validate production setup
+npm run setup:turso        # Setup Turso database (automated)
 npm run db:generate        # Generate Prisma client
 npm run db:push           # Push schema to database
 npm run db:studio         # Open Prisma Studio
@@ -136,7 +148,9 @@ See `DEPLOYMENT.md` for detailed instructions for all platforms.
 - `NEXTAUTH_SECRET`: Secure random string (64+ characters)
 - `NEXTAUTH_URL`: Your app's production URL
 - `NEXT_PUBLIC_BASE_URL`: Same as NEXTAUTH_URL
-- `DATABASE_URL`: PostgreSQL connection string (recommended)
+- `DATABASE_URL`: Database connection string
+- `TURSO_DATABASE_URL`: libsql://emailclient-itachi880.aws-eu-west-1.turso.io (for Turso)
+- `TURSO_AUTH_TOKEN`: Your Turso authentication token
 
 **📖 Full deployment guide:** See `DEPLOYMENT.md`
 

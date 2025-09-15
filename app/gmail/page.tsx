@@ -3,7 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { sanitizeHTML, isHTMLContent, extractTextFromHTML, formatPlainTextEmail } from "@/lib/html-sanitizer";
+import {
+  sanitizeHTML,
+  isHTMLContent,
+  extractTextFromHTML,
+  formatPlainTextEmail,
+} from "@/lib/html-sanitizer";
 
 interface EmailMessage {
   id: string;
@@ -49,32 +54,35 @@ export default function GmailClient() {
       router.push("/auth/signin");
     }
   }, [status, router]);
-
+  const fetchEmails = useCallback(
+    async (page: number = currentPage) => {
+      try {
+        const response = await fetch(
+          `/api/gmail/inbox?page=${page}&limit=${limit}`
+        );
+        const data = await response.json();
+        if (data.success) {
+          setEmails(data.emails);
+          setTotal(data.total);
+          setTotalPages(data.totalPages);
+          setCurrentPage(data.page);
+        } else {
+          console.error("Failed to fetch emails:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching emails:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentPage, limit]
+  );
   // Fetch emails when session is ready
   useEffect(() => {
     if (session) {
       fetchEmails(1);
     }
   }, [session, fetchEmails]);
-
-  const fetchEmails = useCallback(async (page: number = currentPage) => {
-    try {
-      const response = await fetch(`/api/gmail/inbox?page=${page}&limit=${limit}`);
-      const data = await response.json();
-      if (data.success) {
-        setEmails(data.emails);
-        setTotal(data.total);
-        setTotalPages(data.totalPages);
-        setCurrentPage(data.page);
-      } else {
-        console.error("Failed to fetch emails:", data.error);
-      }
-    } catch (error) {
-      console.error("Error fetching emails:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, limit]);
 
   const sendEmail = async () => {
     if (!composeEmail.to || !composeEmail.subject || !composeEmail.content) {
@@ -94,7 +102,11 @@ export default function GmailClient() {
 
       const data = await response.json();
       if (data.success) {
-        alert(`Email sent successfully! ${data.trackingId ? `Tracking ID: ${data.trackingId}` : ""}`);
+        alert(
+          `Email sent successfully! ${
+            data.trackingId ? `Tracking ID: ${data.trackingId}` : ""
+          }`
+        );
         setComposeEmail({
           to: "",
           subject: "",
@@ -128,9 +140,11 @@ export default function GmailClient() {
       });
 
       if (response.ok) {
-        setEmails(emails.map(email => 
-          email.id === emailId ? { ...email, isRead: true } : email
-        ));
+        setEmails(
+          emails.map((email) =>
+            email.id === emailId ? { ...email, isRead: true } : email
+          )
+        );
       }
     } catch (error) {
       console.error("Error marking email as read:", error);
@@ -217,7 +231,10 @@ export default function GmailClient() {
                     type="text"
                     value={composeEmail.subject}
                     onChange={(e) =>
-                      setComposeEmail({ ...composeEmail, subject: e.target.value })
+                      setComposeEmail({
+                        ...composeEmail,
+                        subject: e.target.value,
+                      })
                     }
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Email subject"
@@ -230,7 +247,10 @@ export default function GmailClient() {
                   <textarea
                     value={composeEmail.content}
                     onChange={(e) =>
-                      setComposeEmail({ ...composeEmail, content: e.target.value })
+                      setComposeEmail({
+                        ...composeEmail,
+                        content: e.target.value,
+                      })
                     }
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     rows={8}
@@ -243,7 +263,10 @@ export default function GmailClient() {
                       type="checkbox"
                       checked={composeEmail.isHtml}
                       onChange={(e) =>
-                        setComposeEmail({ ...composeEmail, isHtml: e.target.checked })
+                        setComposeEmail({
+                          ...composeEmail,
+                          isHtml: e.target.checked,
+                        })
                       }
                       className="mr-2"
                     />
@@ -254,7 +277,10 @@ export default function GmailClient() {
                       type="checkbox"
                       checked={composeEmail.includeTracking}
                       onChange={(e) =>
-                        setComposeEmail({ ...composeEmail, includeTracking: e.target.checked })
+                        setComposeEmail({
+                          ...composeEmail,
+                          includeTracking: e.target.checked,
+                        })
                       }
                       className="mr-2"
                     />
@@ -285,14 +311,18 @@ export default function GmailClient() {
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mb-4 rounded-md shadow">
               <div className="flex-1 flex justify-between sm:hidden">
                 <button
-                  onClick={() => currentPage > 1 && fetchEmails(currentPage - 1)}
+                  onClick={() =>
+                    currentPage > 1 && fetchEmails(currentPage - 1)
+                  }
                   disabled={currentPage <= 1}
                   className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                 >
                   Previous
                 </button>
                 <button
-                  onClick={() => currentPage < totalPages && fetchEmails(currentPage + 1)}
+                  onClick={() =>
+                    currentPage < totalPages && fetchEmails(currentPage + 1)
+                  }
                   disabled={currentPage >= totalPages}
                   className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -302,15 +332,23 @@ export default function GmailClient() {
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{(currentPage - 1) * limit + 1}</span> to{' '}
-                    <span className="font-medium">{Math.min(currentPage * limit, total)}</span> of{' '}
-                    <span className="font-medium">{total}</span> emails
+                    Showing{" "}
+                    <span className="font-medium">
+                      {(currentPage - 1) * limit + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min(currentPage * limit, total)}
+                    </span>{" "}
+                    of <span className="font-medium">{total}</span> emails
                   </p>
                 </div>
                 <div>
                   <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                     <button
-                      onClick={() => currentPage > 1 && fetchEmails(currentPage - 1)}
+                      onClick={() =>
+                        currentPage > 1 && fetchEmails(currentPage - 1)
+                      }
                       disabled={currentPage <= 1}
                       className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                     >
@@ -318,16 +356,22 @@ export default function GmailClient() {
                     </button>
                     {(() => {
                       const maxVisiblePages = 10;
-                      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                      
+                      let startPage = Math.max(
+                        1,
+                        currentPage - Math.floor(maxVisiblePages / 2)
+                      );
+                      let endPage = Math.min(
+                        totalPages,
+                        startPage + maxVisiblePages - 1
+                      );
+
                       // Adjust start page if we're near the end
                       if (endPage - startPage + 1 < maxVisiblePages) {
                         startPage = Math.max(1, endPage - maxVisiblePages + 1);
                       }
-                      
+
                       const pages = [];
-                      
+
                       // Add first page if not visible
                       if (startPage > 1) {
                         pages.push(
@@ -341,13 +385,16 @@ export default function GmailClient() {
                         );
                         if (startPage > 2) {
                           pages.push(
-                            <span key="start-ellipsis" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                            <span
+                              key="start-ellipsis"
+                              className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                            >
                               ...
                             </span>
                           );
                         }
                       }
-                      
+
                       // Add visible page range
                       for (let page = startPage; page <= endPage; page++) {
                         pages.push(
@@ -356,20 +403,23 @@ export default function GmailClient() {
                             onClick={() => fetchEmails(page)}
                             className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                               page === currentPage
-                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                                : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                             }`}
                           >
                             {page}
                           </button>
                         );
                       }
-                      
+
                       // Add last page if not visible
                       if (endPage < totalPages) {
                         if (endPage < totalPages - 1) {
                           pages.push(
-                            <span key="end-ellipsis" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                            <span
+                              key="end-ellipsis"
+                              className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                            >
                               ...
                             </span>
                           );
@@ -384,11 +434,13 @@ export default function GmailClient() {
                           </button>
                         );
                       }
-                      
+
                       return pages;
                     })()}
                     <button
-                      onClick={() => currentPage < totalPages && fetchEmails(currentPage + 1)}
+                      onClick={() =>
+                        currentPage < totalPages && fetchEmails(currentPage + 1)
+                      }
                       disabled={currentPage >= totalPages}
                       className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                     >
@@ -432,29 +484,34 @@ export default function GmailClient() {
                             email.isRead ? "bg-gray-300" : "bg-blue-500"
                           }`}
                         ></div>
-                        <p className={`text-sm font-medium text-gray-900 truncate ${
-                          !email.isRead ? "font-bold" : ""
-                        }`}>
+                        <p
+                          className={`text-sm font-medium text-gray-900 truncate ${
+                            !email.isRead ? "font-bold" : ""
+                          }`}
+                        >
                           {email.from}
                         </p>
                       </div>
-                      <p className={`mt-1 text-sm text-gray-600 truncate ${
-                        !email.isRead ? "font-semibold" : ""
-                      }`}>
+                      <p
+                        className={`mt-1 text-sm text-gray-600 truncate ${
+                          !email.isRead ? "font-semibold" : ""
+                        }`}
+                      >
                         {email.subject}
                       </p>
                       <p className="mt-1 text-xs text-gray-500 truncate">
                         {(() => {
-                          const previewText = isHTMLContent(email.body) 
+                          const previewText = isHTMLContent(email.body)
                             ? extractTextFromHTML(email.body)
                             : email.body;
                           // Clean up the preview text (remove multiple spaces, line breaks)
-                          const cleanText = previewText.replace(/\s+/g, ' ').trim();
-                          return cleanText.length > 100 
-                            ? cleanText.substring(0, 100) + '...' 
+                          const cleanText = previewText
+                            .replace(/\s+/g, " ")
+                            .trim();
+                          return cleanText.length > 100
+                            ? cleanText.substring(0, 100) + "..."
                             : cleanText;
-                        })()
-                        }
+                        })()}
                       </p>
                       <p className="mt-1 text-xs text-gray-400">
                         {formatDate(email.date)}
@@ -505,24 +562,32 @@ export default function GmailClient() {
 
               <div className="space-y-4">
                 <div>
-                  <p><strong>From:</strong> {selectedEmail.from}</p>
-                  <p><strong>Subject:</strong> {selectedEmail.subject}</p>
-                  <p><strong>Date:</strong> {formatDate(selectedEmail.date)}</p>
+                  <p>
+                    <strong>From:</strong> {selectedEmail.from}
+                  </p>
+                  <p>
+                    <strong>Subject:</strong> {selectedEmail.subject}
+                  </p>
+                  <p>
+                    <strong>Date:</strong> {formatDate(selectedEmail.date)}
+                  </p>
                 </div>
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center mb-2">
-                    <h4 className="text-sm font-medium text-gray-700">Content</h4>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      Content
+                    </h4>
                     <div className="flex items-center space-x-2">
                       {isHTMLContent(selectedEmail.body) && (
                         <button
                           onClick={() => setShowRawHTML(!showRawHTML)}
                           className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded"
                         >
-                          {showRawHTML ? 'Rendered' : 'Raw HTML'}
+                          {showRawHTML ? "Rendered" : "Raw HTML"}
                         </button>
                       )}
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {isHTMLContent(selectedEmail.body) ? 'HTML' : 'Text'}
+                        {isHTMLContent(selectedEmail.body) ? "HTML" : "Text"}
                       </span>
                     </div>
                   </div>
@@ -533,52 +598,78 @@ export default function GmailClient() {
                           {selectedEmail.body}
                         </pre>
                       ) : (
-                        <div 
+                        <div
                           className="email-content"
-                          dangerouslySetInnerHTML={{ 
-                            __html: sanitizeHTML(selectedEmail.body) 
+                          dangerouslySetInnerHTML={{
+                            __html: sanitizeHTML(selectedEmail.body),
                           }}
                           style={{
-                            maxWidth: '100%',
-                            overflow: 'auto'
+                            maxWidth: "100%",
+                            overflow: "auto",
                           }}
                         />
                       )
                     ) : (
-                      <div 
+                      <div
                         className="email-content"
-                        dangerouslySetInnerHTML={{ 
-                          __html: formatPlainTextEmail(selectedEmail.body) 
+                        dangerouslySetInnerHTML={{
+                          __html: formatPlainTextEmail(selectedEmail.body),
                         }}
                       />
                     )}
                   </div>
-                  
+
                   {/* Debug Section - can be toggled */}
                   <details className="mt-4">
                     <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
                       Debug Info (click to expand)
                     </summary>
                     <div className="mt-2 p-3 bg-gray-100 rounded text-xs">
-                      <p><strong>Is HTML:</strong> {isHTMLContent(selectedEmail.body) ? 'Yes' : 'No'}</p>
-                      <p><strong>Content Length:</strong> {selectedEmail.body?.length || 0} characters</p>
-                      <p><strong>Contains URLs:</strong> {/(https?:\/\/[^\s<>"'()\[\]]+)/i.test(selectedEmail.body || '') ? 'Yes' : 'No'}</p>
-                      <p><strong>First 300 chars:</strong></p>
+                      <p>
+                        <strong>Is HTML:</strong>{" "}
+                        {isHTMLContent(selectedEmail.body) ? "Yes" : "No"}
+                      </p>
+                      <p>
+                        <strong>Content Length:</strong>{" "}
+                        {selectedEmail.body?.length || 0} characters
+                      </p>
+                      <p>
+                        <strong>Contains URLs:</strong>{" "}
+                        {/(https?:\/\/[^\s<>"'()\[\]]+)/i.test(
+                          selectedEmail.body || ""
+                        )
+                          ? "Yes"
+                          : "No"}
+                      </p>
+                      <p>
+                        <strong>First 300 chars:</strong>
+                      </p>
                       <pre className="mt-1 text-xs bg-white p-2 rounded overflow-x-auto whitespace-pre-wrap">
-                        {selectedEmail.body?.substring(0, 300) || 'No content'}
+                        {selectedEmail.body?.substring(0, 300) || "No content"}
                       </pre>
                       {isHTMLContent(selectedEmail.body) ? (
                         <>
-                          <p className="mt-2"><strong>Sanitized HTML (first 300 chars):</strong></p>
+                          <p className="mt-2">
+                            <strong>Sanitized HTML (first 300 chars):</strong>
+                          </p>
                           <pre className="mt-1 text-xs bg-white p-2 rounded overflow-x-auto whitespace-pre-wrap">
-                            {sanitizeHTML(selectedEmail.body)?.substring(0, 300) || 'No content'}
+                            {sanitizeHTML(selectedEmail.body)?.substring(
+                              0,
+                              300
+                            ) || "No content"}
                           </pre>
                         </>
                       ) : (
                         <>
-                          <p className="mt-2"><strong>Formatted Plain Text (first 300 chars):</strong></p>
+                          <p className="mt-2">
+                            <strong>
+                              Formatted Plain Text (first 300 chars):
+                            </strong>
+                          </p>
                           <pre className="mt-1 text-xs bg-white p-2 rounded overflow-x-auto whitespace-pre-wrap">
-                            {formatPlainTextEmail(selectedEmail.body)?.substring(0, 300) || 'No content'}
+                            {formatPlainTextEmail(
+                              selectedEmail.body
+                            )?.substring(0, 300) || "No content"}
                           </pre>
                         </>
                       )}

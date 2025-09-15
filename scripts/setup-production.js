@@ -18,6 +18,12 @@ const requiredEnvVars = [
   'DATABASE_URL'
 ];
 
+// Turso-specific environment variables
+const tursoEnvVars = [
+  'TURSO_DATABASE_URL',
+  'TURSO_AUTH_TOKEN'
+];
+
 // Optional but recommended environment variables
 const recommendedEnvVars = [
   'NODE_ENV'
@@ -85,10 +91,24 @@ function validateConfiguration() {
   // Check database URL format
   const databaseUrl = process.env.DATABASE_URL;
   if (databaseUrl) {
-    if (databaseUrl.includes('postgresql://')) {
-      console.log('✅ PostgreSQL database URL detected (recommended for production)');
+    if (databaseUrl.includes('libsql://')) {
+      console.log('✅ Turso (libSQL) database URL detected (excellent for production!)');
+      
+      // Check for Turso-specific env vars
+      const tursoUrl = process.env.TURSO_DATABASE_URL;
+      const tursoToken = process.env.TURSO_AUTH_TOKEN;
+      
+      if (tursoUrl && tursoToken) {
+        console.log('✅ Turso configuration complete');
+      } else {
+        console.log('⚠️  Missing Turso-specific environment variables:');
+        if (!tursoUrl) console.log('   - TURSO_DATABASE_URL');
+        if (!tursoToken) console.log('   - TURSO_AUTH_TOKEN');
+      }
+    } else if (databaseUrl.includes('postgresql://')) {
+      console.log('✅ PostgreSQL database URL detected');
     } else if (databaseUrl.includes('file:')) {
-      console.log('⚠️  SQLite database detected (may not work in serverless environments)');
+      console.log('⚠️  Local SQLite database detected (for development only)');
     } else {
       console.log('⚠️  Unknown database type detected');
     }
@@ -133,8 +153,16 @@ function displayDeploymentInstructions() {
   console.log('2. Run: docker-compose up --build');
   console.log('3. Access app at http://localhost:3000\n');
   
-  console.log('📊 For Database Setup (PostgreSQL):');
-  console.log('1. Create a PostgreSQL database (recommended: Supabase, PlanetScale, or Neon)');
+  console.log('📊 For Turso Database Setup (Recommended):');
+  console.log('1. Install Turso CLI: npm install -g @libsql/cli');
+  console.log('2. Get your auth token: turso auth token');
+  console.log('3. Set TURSO_DATABASE_URL=libsql://emailclient-itachi880.aws-eu-west-1.turso.io');
+  console.log('4. Set TURSO_AUTH_TOKEN=your-auth-token');
+  console.log('5. Set DATABASE_URL=libsql://emailclient-itachi880.aws-eu-west-1.turso.io');
+  console.log('6. Run: npx prisma db push');
+  console.log('');
+  console.log('📊 Alternative: PostgreSQL Database:');
+  console.log('1. Create a PostgreSQL database (Supabase, PlanetScale, or Neon)');
   console.log('2. Copy the connection string to DATABASE_URL');
   console.log('3. Run: npx prisma db push');
 }
