@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { sanitizeHTML, isHTMLContent, extractTextFromHTML, formatPlainTextEmail } from "@/lib/html-sanitizer";
@@ -55,9 +55,9 @@ export default function GmailClient() {
     if (session) {
       fetchEmails(1);
     }
-  }, [session]);
+  }, [session, fetchEmails]);
 
-  const fetchEmails = async (page: number = currentPage) => {
+  const fetchEmails = useCallback(async (page: number = currentPage) => {
     try {
       const response = await fetch(`/api/gmail/inbox?page=${page}&limit=${limit}`);
       const data = await response.json();
@@ -74,7 +74,7 @@ export default function GmailClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, limit]);
 
   const sendEmail = async () => {
     if (!composeEmail.to || !composeEmail.subject || !composeEmail.content) {

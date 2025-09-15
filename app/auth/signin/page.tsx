@@ -124,10 +124,10 @@ export default function SignIn() {
                 </h3>
                 <ol className="mt-2 text-sm text-blue-700 list-decimal list-inside space-y-1">
                   <li>Go to your Google Account settings</li>
-                  <li>Click "Security" → "2-Step Verification" (must be enabled)</li>
-                  <li>Scroll down and click "App passwords"</li>
-                  <li>Select "Mail" and "Other (custom name)"</li>
-                  <li>Enter "Email Tracker" as the name</li>
+                  <li>Click &quot;Security&quot; → &quot;2-Step Verification&quot; (must be enabled)</li>
+                  <li>Scroll down and click &quot;App passwords&quot;</li>
+                  <li>Select &quot;Mail&quot; and &quot;Other (custom name)&quot;</li>
+                  <li>Enter &quot;Email Tracker&quot; as the name</li>
                   <li>Copy the 16-character password and use it here</li>
                 </ol>
               </div>

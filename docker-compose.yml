@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database for production-like testing
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: email_tracker
+      POSTGRES_USER: email_user
+      POSTGRES_PASSWORD: your_secure_password_here
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  # Email Verification App
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://email_user:your_secure_password_here@postgres:5432/email_tracker
+      - NEXTAUTH_SECRET=your-very-secure-secret-key-for-production
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXT_PUBLIC_BASE_URL=http://localhost:3000
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge

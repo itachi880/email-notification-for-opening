@@ -40,6 +40,19 @@ npm run dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
+## 📜 Available Scripts
+
+```bash
+npm run dev                 # Start development server
+npm run build              # Build for production
+npm start                  # Start production server
+npm run lint               # Run ESLint
+npm run setup:production   # Validate production setup
+npm run db:generate        # Generate Prisma client
+npm run db:push           # Push schema to database
+npm run db:studio         # Open Prisma Studio
+```
+
 ## Usage
 
 ### Generating Tracking URLs
@@ -90,14 +103,42 @@ Add this HTML to your email (replace `YOUR_TRACKING_URL` with the generated URL)
 - **emails**: Stores email information and tracking IDs
 - **email_opens**: Records each time an email is opened
 
-## Deployment to Vercel
+## 🚀 Production Deployment
 
+**Your app is now ready for production deployment!**
+
+### Quick Start
+```bash
+# Validate your production setup
+npm run setup:production
+
+# Check for any issues before deploying
+npm run lint
+```
+
+### Deployment Options
+
+#### 📦 Vercel (Recommended)
 1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Set environment variables if needed
-4. Deploy!
+2. Connect repository to Vercel dashboard
+3. Set environment variables (see DEPLOYMENT.md)
+4. Deploy automatically!
 
-Note: For production, consider using a more robust database like PostgreSQL instead of SQLite.
+#### 🐳 Docker
+```bash
+docker-compose up --build
+```
+
+#### ⚙️ Other Platforms
+See `DEPLOYMENT.md` for detailed instructions for all platforms.
+
+### 🔑 Required Environment Variables
+- `NEXTAUTH_SECRET`: Secure random string (64+ characters)
+- `NEXTAUTH_URL`: Your app's production URL
+- `NEXT_PUBLIC_BASE_URL`: Same as NEXTAUTH_URL
+- `DATABASE_URL`: PostgreSQL connection string (recommended)
+
+**📖 Full deployment guide:** See `DEPLOYMENT.md`
 
 ## Environment Variables
 
