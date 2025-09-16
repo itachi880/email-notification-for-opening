@@ -1,21 +1,24 @@
 # Email Received Verification
 
-A Next.js application that tracks whether emails have been opened using tracking pixels.
+A Next.js application that tracks whether emails have been opened using tracking pixels with Gmail integration and Turso database.
 
 ## Features
 
-- **URL Generator**: Create unique tracking URLs for each email
-- **Tracking Pixel**: Custom image.png that logs email opens
-- **Dashboard**: View email statistics and open rates
-- **Database**: SQLite database to store email and open data
+- **Gmail Integration**: Real Gmail IMAP access with authentication
+- **Email Tracking**: Track email opens with detailed analytics
+- **User Authentication**: Secure Gmail-based login system
+- **Turso Database**: Scalable cloud database with libsql
 - **Real-time Tracking**: Track when emails are opened with IP and user agent info
+- **Email Sending**: Send emails with automatic tracking pixel insertion
 
 ## How It Works
 
-1. **Generate Tracking URL**: Use the dashboard to create a unique tracking URL for an email
-2. **Embed in Email**: Add the tracking URL as an image source in your email HTML
-3. **Track Opens**: When the recipient opens the email, the image loads and logs the open
-4. **View Statistics**: Check the dashboard to see which emails were opened and when
+1. **Gmail Authentication**: Login with your Gmail credentials and App Password
+2. **Email Management**: View your real Gmail inbox with pagination
+3. **Generate Tracking URLs**: Create unique tracking URLs for emails you want to track
+4. **Send Emails**: Send emails with automatic tracking pixel insertion
+5. **Track Opens**: When recipients open emails, detailed analytics are recorded
+6. **View Statistics**: Check the dashboard for comprehensive email analytics
 
 ## Installation
 
@@ -27,17 +30,19 @@ npm install
 
 2. Setup your database:
 
-**Option A: Turso (Recommended - your configured database)**
+**Turso Database (Recommended)**
+
 ```bash
 npm run setup:turso
 # This will:
-# - Configure your Turso database (libsql://emailclient-itachi880.aws-eu-west-1.turso.io)
+# - Configure your Turso database
 # - Set up environment variables
 # - Test the connection
 # - Push the schema
 ```
 
-**Option B: Manual setup**
+**Manual setup**
+
 ```bash
 npx prisma generate
 npx prisma db push
@@ -49,7 +54,7 @@ npx prisma db push
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+4. Open your browser and navigate to your app URL
 
 ## 📜 Available Scripts
 
@@ -67,41 +72,30 @@ npm run db:studio         # Open Prisma Studio
 
 ## Usage
 
-### Generating Tracking URLs
+### Gmail Setup
 
-1. Go to the dashboard
-2. Click "Generate Tracking URL"
-3. Enter the recipient email (required)
-4. Optionally add subject and content
-5. Click "Generate URL"
-6. Copy the generated URL and use it in your email
+1. **Enable 2-Factor Authentication** on your Google Account
+2. **Generate App Password**:
+   - Go to [Google Account Security](https://myaccount.google.com/security)
+   - Click **2-Step Verification** → **App passwords**
+   - Select **Mail** and **Other (custom name)**
+   - Enter "Email Tracker" as device name
+   - Copy the 16-character password
 
-### Using in Emails
+### Using the Application
 
-Add this HTML to your email (replace `YOUR_TRACKING_URL` with the generated URL):
+1. **Login**: Use your Gmail address and App Password
+2. **Gmail Client**: View your real Gmail inbox with pagination
+3. **Generate Tracking URLs**: Create unique tracking URLs for emails
+4. **Send Emails**: Send emails with automatic tracking pixel insertion
+5. **View Analytics**: Check detailed email open statistics
+
+### Email Tracking
+
+The system automatically inserts tracking pixels when sending emails. For manual tracking, add this HTML to your email:
 
 ```html
 <img src="YOUR_TRACKING_URL" width="1" height="1" style="display:none;" />
-```
-
-### Example Email HTML
-
-```html
-<!DOCTYPE html>
-<html>
-  <body>
-    <h1>Your Email Subject</h1>
-    <p>Your email content here...</p>
-
-    <!-- Tracking pixel -->
-    <img
-      src="http://localhost:3000/api/track/abc123def4"
-      width="1"
-      height="1"
-      style="display:none;"
-    />
-  </body>
-</html>
 ```
 
 ## API Endpoints
@@ -112,14 +106,17 @@ Add this HTML to your email (replace `YOUR_TRACKING_URL` with the generated URL)
 
 ## Database Schema
 
-- **emails**: Stores email information and tracking IDs
+- **users**: User authentication and Gmail credentials
+- **emails**: Email information and tracking IDs
 - **email_opens**: Records each time an email is opened
+- **sent_emails**: Records of sent emails with tracking
 
 ## 🚀 Production Deployment
 
 **Your app is now ready for production deployment!**
 
 ### Quick Start
+
 ```bash
 # Validate your production setup
 npm run setup:production
@@ -131,25 +128,29 @@ npm run lint
 ### Deployment Options
 
 #### 📦 Vercel (Recommended)
+
 1. Push your code to GitHub
 2. Connect repository to Vercel dashboard
 3. Set environment variables (see DEPLOYMENT.md)
 4. Deploy automatically!
 
 #### 🐳 Docker
+
 ```bash
 docker-compose up --build
 ```
 
 #### ⚙️ Other Platforms
+
 See `DEPLOYMENT.md` for detailed instructions for all platforms.
 
 ### 🔑 Required Environment Variables
+
 - `NEXTAUTH_SECRET`: Secure random string (64+ characters)
 - `NEXTAUTH_URL`: Your app's production URL
 - `NEXT_PUBLIC_BASE_URL`: Same as NEXTAUTH_URL
-- `DATABASE_URL`: Database connection string
-- `TURSO_DATABASE_URL`: libsql://emailclient-itachi880.aws-eu-west-1.turso.io (for Turso)
+- `DATABASE_URL`: Turso database connection string
+- `TURSO_DATABASE_URL`: Your Turso database URL
 - `TURSO_AUTH_TOKEN`: Your Turso authentication token
 
 **📖 Full deployment guide:** See `DEPLOYMENT.md`
@@ -161,9 +162,11 @@ See `DEPLOYMENT.md` for detailed instructions for all platforms.
 ## Technical Details
 
 - **Framework**: Next.js 14 with App Router
-- **Database**: SQLite with Prisma ORM
+- **Database**: Turso (libsql) with Prisma ORM
+- **Authentication**: NextAuth.js with Gmail credentials
+- **Email**: Gmail IMAP integration with nodemailer
 - **Styling**: Tailwind CSS
-- **Tracking**: Custom image.png file
+- **Tracking**: Custom tracking pixel system
 - **Unique IDs**: Generated using nanoid
 
 ## Security Considerations
