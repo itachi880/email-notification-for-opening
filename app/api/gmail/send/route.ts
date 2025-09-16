@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { prisma } from "@/lib/prisma";
+import { prismaClient } from "@/lib/prisma-client";
 import { nanoid } from "nanoid";
 import {
   getCurrentUser,
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Create tracking record in database
-      await prisma.email.create({
+      await prismaClient.email.create({
         data: {
           recipientEmail: to,
           subject,
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     // Save sent email to database
     try {
-      await prisma.sentEmail.create({
+      await prismaClient.sentEmail.create({
         data: {
           recipientEmail: to,
           subject,

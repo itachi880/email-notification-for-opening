@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { prisma } from "@/lib/prisma";
+import { prismaClient } from "@/lib/prisma-client";
 import { getCurrentUser } from "@/lib/auth-utils";
 
 export async function POST(request: NextRequest) {
@@ -8,10 +8,7 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const { recipientEmail, subject, content } = await request.json();
@@ -27,7 +24,7 @@ export async function POST(request: NextRequest) {
     const trackingId = nanoid(10);
 
     // Insert email record into database with user ID
-    const email = await prisma.email.create({
+    const email = await prismaClient.email.create({
       data: {
         recipientEmail,
         subject: subject || "",

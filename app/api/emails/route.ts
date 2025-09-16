@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prismaClient } from "@/lib/prisma-client";
 import { getCurrentUser } from "@/lib/auth-utils";
 
 export async function POST(request: Request) {
@@ -7,17 +7,14 @@ export async function POST(request: Request) {
     // Check authentication
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const { action, emailId } = await request.json();
 
     if (action === "reset_opens" && emailId) {
       // First verify the email belongs to the current user
-      const email = await prisma.email.findFirst({
+      const email = await prismaClient.email.findFirst({
         where: {
           id: parseInt(emailId),
           userId: user.id,
@@ -26,13 +23,13 @@ export async function POST(request: Request) {
 
       if (!email) {
         return NextResponse.json(
-          { error: 'Email not found or access denied' },
+          { error: "Email not found or access denied" },
           { status: 404 }
         );
       }
 
       // Soft delete all opens for the specified email
-      await prisma.emailOpen.updateMany({
+      await prismaClient.emailOpen.updateMany({
         where: {
           emailId: parseInt(emailId),
           isDeleted: false,
@@ -61,14 +58,11 @@ export async function GET() {
     // Check authentication
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     // Get user's emails with their open statistics (excluding soft deleted opens)
-    const emails = await prisma.email.findMany({
+    const emails = await prismaClient.email.findMany({
       where: {
         userId: user.id, // Only get current user's emails
       },
@@ -112,16 +106,16 @@ export async function GET() {
     }));
 
     // Get user-specific statistics (excluding soft deleted opens)
-    const totalEmails = await prisma.email.count({
+    const totalEmails = await prismaClient.email.count({
       where: { userId: user.id },
     });
-    const totalOpens = await prisma.emailOpen.count({
+    const totalOpens = await prismaClient.emailOpen.count({
       where: {
         isDeleted: false,
         email: { userId: user.id },
       },
     });
-    const uniqueOpens = await prisma.emailOpen
+    const uniqueOpens = await prismaClient.emailOpen
       .groupBy({
         by: ["emailId"],
         where: {

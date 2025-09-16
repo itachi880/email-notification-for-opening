@@ -1,16 +1,16 @@
-import { getServerSession } from 'next-auth';
-import { prisma } from './prisma';
-import bcrypt from 'bcryptjs';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getServerSession } from "next-auth";
+import { prismaClient } from "./prisma-client";
+import bcrypt from "bcryptjs";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function getCurrentUser() {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user?.email) {
     return null;
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prismaClient.user.findUnique({
     where: { email: session.user.email },
   });
 
@@ -18,7 +18,7 @@ export async function getCurrentUser() {
 }
 
 export async function getUserGmailCredentials(userId: string) {
-  const user = await prisma.user.findUnique({
+  const user = await prismaClient.user.findUnique({
     where: { id: userId },
     select: { email: true, gmailPassword: true },
   });
@@ -33,10 +33,13 @@ export async function getUserGmailCredentials(userId: string) {
   };
 }
 
-export function createUserGmailConfig(credentials: { user: string; password: string }) {
+export function createUserGmailConfig(credentials: {
+  user: string;
+  password: string;
+}) {
   return {
     smtp: {
-      host: 'smtp.gmail.com',
+      host: "smtp.gmail.com",
       port: 587,
       secure: false,
       auth: {
@@ -47,12 +50,12 @@ export function createUserGmailConfig(credentials: { user: string; password: str
     imap: {
       user: credentials.user,
       password: credentials.password,
-      host: 'imap.gmail.com',
+      host: "imap.gmail.com",
       port: 993,
       tls: true,
       tlsOptions: {
-        rejectUnauthorized: false
-      }
-    }
+        rejectUnauthorized: false,
+      },
+    },
   };
 }

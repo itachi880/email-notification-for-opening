@@ -1,18 +1,19 @@
-import NextAuth from 'next-auth';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
+import NextAuth, { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prismaClient } from "@/lib/prisma-client";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
 
-export const authOptions = {
-  adapter: PrismaAdapter(prisma),
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prismaClient),
   providers: [
     CredentialsProvider({
-      name: 'Gmail',
+      name: "Gmail",
       credentials: {
-        email: { label: 'Gmail Address', type: 'email' },
-        password: { label: 'App Password', type: 'password' },
+        email: { label: "Gmail Address", type: "email" },
+        password: { label: "App Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -21,7 +22,7 @@ export const authOptions = {
 
         // Test Gmail connection with provided credentials
         const testTransporter = nodemailer.createTransport({
-          host: 'smtp.gmail.com',
+          host: "smtp.gmail.com",
           port: 587,
           secure: false,
           auth: {
@@ -33,24 +34,24 @@ export const authOptions = {
         try {
           // Verify the connection
           await testTransporter.verify();
-          
+
           // Check if user exists in database
-          let user = await prisma.user.findUnique({
-            where: { email: credentials.email }
+          let user = await prismaClient.user.findUnique({
+            where: { email: credentials.email },
           });
 
           if (!user) {
             // Create new user with app password (stored as-is for IMAP)
-            user = await prisma.user.create({
+            user = await prismaClient.user.create({
               data: {
                 email: credentials.email,
-                name: credentials.email.split('@')[0],
+                name: credentials.email.split("@")[0],
                 gmailPassword: credentials.password, // Store app password as-is
               },
             });
           } else {
             // Update existing user's password
-            user = await prisma.user.update({
+            user = await prismaClient.user.update({
               where: { id: user.id },
               data: { gmailPassword: credentials.password }, // Store app password as-is
             });
@@ -62,23 +63,23 @@ export const authOptions = {
             name: user.name,
           };
         } catch (error) {
-          console.error('Gmail authentication failed:', error);
+          console.error("Gmail authentication failed:", error);
           return null;
         }
       },
     }),
   ],
   session: {
-    strategy: 'jwt',
+    strategy: "jwt" as const,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: any; user: any }) {
       if (user) {
         token.id = user.id;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       if (token) {
         session.user.id = token.id as string;
       }
@@ -86,8 +87,8 @@ export const authOptions = {
     },
   },
   pages: {
-    signIn: '/auth/signin',
-    signOut: '/auth/signout',
+    signIn: "/auth/signin",
+    signOut: "/auth/signout",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

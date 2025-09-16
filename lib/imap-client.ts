@@ -1,5 +1,5 @@
-const Imap = require('node-imap');
-const { simpleParser } = require('mailparser');
+const Imap = require("node-imap");
+const { simpleParser } = require("mailparser");
 
 export interface EmailMessage {
   id: string;
@@ -32,25 +32,26 @@ export class ImapClient {
 
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.imap.once('ready', resolve);
-      this.imap.once('error', reject);
+      this.imap.once("ready", resolve);
+      this.imap.once("error", reject);
       this.imap.connect();
     });
   }
 
   async disconnect(): Promise<void> {
     return new Promise((resolve) => {
-      this.imap.once('end', resolve);
+      this.imap.once("end", resolve);
       this.imap.end();
     });
   }
 
   async getEmails(
-    folder: string = 'INBOX',
+    folder: string = "INBOX",
     limit: number = 50,
     offset: number = 0
   ): Promise<{ emails: EmailMessage[]; total: number }> {
     return new Promise((resolve, reject) => {
+      // @ts-ignore
       this.imap.openBox(folder, false, (err, box) => {
         if (err) {
           reject(err);
@@ -58,7 +59,7 @@ export class ImapClient {
         }
 
         const total = box.messages.total;
-        
+
         if (total === 0) {
           resolve({ emails: [], total: 0 });
           return;
@@ -67,14 +68,14 @@ export class ImapClient {
         // Calculate range for pagination
         const start = Math.max(1, total - offset - limit + 1);
         const end = total - offset;
-        
+
         if (start > end) {
           resolve({ emails: [], total });
           return;
         }
 
         const fetch = this.imap.seq.fetch(`${start}:${end}`, {
-          bodies: '',
+          bodies: "",
           struct: true,
           envelope: true,
         });
@@ -83,27 +84,29 @@ export class ImapClient {
         let processed = 0;
         let expectedCount = end - start + 1;
 
-        fetch.on('message', (msg, seqno) => {
-          let buffer = '';
+        // @ts-ignore
+        fetch.on("message", (msg, seqno) => {
+          let buffer = "";
           let envelope: any;
           let attributes: any;
-
-          msg.on('body', (stream) => {
-            stream.on('data', (chunk) => {
-              buffer += chunk.toString('utf8');
+          // @ts-ignore
+          msg.on("body", (stream) => {
+            // @ts-ignore
+            stream.on("data", (chunk) => {
+              buffer += chunk.toString("utf8");
             });
           });
-
-          msg.once('attributes', (attrs) => {
+          // @ts-ignore
+          msg.once("attributes", (attrs) => {
             attributes = attrs;
           });
 
-          msg.once('end', async () => {
+          msg.once("end", async () => {
             try {
               const parsed = await simpleParser(buffer);
-              
+
               // Prefer HTML content if available, otherwise use text
-              let emailBody = '';
+              let emailBody = "";
               if (parsed.html) {
                 emailBody = parsed.html;
               } else if (parsed.text) {
@@ -111,46 +114,53 @@ export class ImapClient {
               } else if (parsed.textAsHtml) {
                 emailBody = parsed.textAsHtml;
               } else {
-                emailBody = 'No content available';
+                emailBody = "No content available";
               }
-              
+
               emails.push({
                 id: seqno.toString(),
-                from: parsed.from?.text || 'Unknown',
-                to: parsed.to?.text || '',
-                subject: parsed.subject || 'No Subject',
+                from: parsed.from?.text || "Unknown",
+                to: parsed.to?.text || "",
+                subject: parsed.subject || "No Subject",
                 date: parsed.date?.toISOString() || new Date().toISOString(),
                 body: emailBody,
-                isRead: attributes.flags.includes('\\Seen'),
-                attachments: parsed.attachments?.map(att => ({
-                  filename: att.filename || 'untitled',
-                  contentType: att.contentType || 'application/octet-stream',
+                isRead: attributes.flags.includes("\\Seen"),
+                //@ts-ignore
+                attachments: parsed.attachments?.map((att) => ({
+                  filename: att.filename || "untitled",
+                  contentType: att.contentType || "application/octet-stream",
                   size: att.size || 0,
                 })),
               });
-              
+
               processed++;
-              
+
               if (processed === expectedCount) {
                 // Sort by date (newest first)
-                emails.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                emails.sort(
+                  (a, b) =>
+                    new Date(b.date).getTime() - new Date(a.date).getTime()
+                );
                 resolve({ emails, total });
               }
             } catch (parseError) {
-              console.error('Error parsing email:', parseError);
+              console.error("Error parsing email:", parseError);
               processed++;
-              
+
               if (processed === expectedCount) {
-                emails.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                emails.sort(
+                  (a, b) =>
+                    new Date(b.date).getTime() - new Date(a.date).getTime()
+                );
                 resolve({ emails, total });
               }
             }
           });
         });
 
-        fetch.once('error', reject);
-        
-        fetch.once('end', () => {
+        fetch.once("error", reject);
+
+        fetch.once("end", () => {
           if (processed === 0) {
             resolve({ emails: [], total });
           }
@@ -161,13 +171,14 @@ export class ImapClient {
 
   async markAsRead(messageId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.imap.openBox('INBOX', false, (err) => {
+      //@ts-ignore
+      this.imap.openBox("INBOX", false, (err) => {
         if (err) {
           reject(err);
           return;
         }
-
-        this.imap.seq.addFlags(messageId, ['\\Seen'], (err) => {
+        //@ts-ignore
+        this.imap.seq.addFlags(messageId, ["\\Seen"], (err) => {
           if (err) {
             reject(err);
           } else {
@@ -180,13 +191,14 @@ export class ImapClient {
 
   async markAsUnread(messageId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.imap.openBox('INBOX', false, (err) => {
+      //@ts-ignore
+      this.imap.openBox("INBOX", false, (err) => {
         if (err) {
           reject(err);
           return;
         }
-
-        this.imap.seq.delFlags(messageId, ['\\Seen'], (err) => {
+        //@ts-ignore
+        this.imap.seq.delFlags(messageId, ["\\Seen"], (err) => {
           if (err) {
             reject(err);
           } else {

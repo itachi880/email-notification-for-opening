@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prismaClient } from "@/lib/prisma-client";
 
 export async function GET(
   request: Request,
@@ -9,7 +9,7 @@ export async function GET(
     const emailId = parseInt(params.id);
 
     // Get email with all opens (including soft deleted ones)
-    const email = await prisma.email.findUnique({
+    const email = await prismaClient.email.findUnique({
       where: { id: emailId },
       include: {
         emailOpens: {
@@ -53,5 +53,3 @@ export async function GET(
     );
   }
 }
-
-

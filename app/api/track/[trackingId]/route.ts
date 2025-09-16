@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prismaClient } from "@/lib/prisma-client";
 import fs from "fs";
 import path from "path";
 
@@ -9,22 +9,22 @@ export async function GET(
 ) {
   try {
     const { trackingId } = params;
-    console.log('Tracking request received:', {
+    console.log("Tracking request received:", {
       trackingId,
       url: request.url,
       method: request.method,
-      userAgent: request.headers.get('user-agent')
+      userAgent: request.headers.get("user-agent"),
     });
 
     // Find the email by tracking ID
-    const email = await prisma.email.findUnique({
+    const email = await prismaClient.email.findUnique({
       where: { trackingId },
     });
-    
-    console.log('Email lookup result:', {
+
+    console.log("Email lookup result:", {
       found: !!email,
       emailId: email?.id,
-      recipientEmail: email?.recipientEmail
+      recipientEmail: email?.recipientEmail,
     });
 
     if (!email) {
@@ -55,19 +55,19 @@ export async function GET(
     const userAgent = request.headers.get("user-agent") || "unknown";
 
     // Record the email open
-    const emailOpen = await prisma.emailOpen.create({
+    const emailOpen = await prismaClient.emailOpen.create({
       data: {
         emailId: email.id,
         ipAddress: ip,
         userAgent: userAgent,
       },
     });
-    
-    console.log('Email open recorded successfully:', {
+
+    console.log("Email open recorded successfully:", {
       openId: emailOpen.id,
       emailId: email.id,
       ip,
-      timestamp: emailOpen.openedAt
+      timestamp: emailOpen.openedAt,
     });
 
     // Return the custom image
